@@ -23,9 +23,8 @@ export const botConfig = {
     // 5 = Competing
     activities: [
       {
-        name: "Watching", // required by Discord API, not shown in the client
-        state: "",     // this is what people actually see
-        type: 3,               // Custom
+        name: "A&M Watches",
+        type: 3,               // 3 = Watching
       },
     ],
   },
@@ -508,7 +507,7 @@ export function validateConfig(config) {
         errors.push("PostgreSQL connection is required in production (set DATABASE_URL/POSTGRES_URL, or POSTGRES_HOST)");
       }
       if (!process.env.POSTGRES_USER) {
-        errors.push("PostgreSQL user is required in production (set DATABASE_URL/POSTGRES_URL, or POSTGRES_USER)");
+        errors.push("PostgreSQL user is required in production (set DATABASE_URL/POSTGRES_USER)");
       }
       if (!process.env.POSTGRES_PASSWORD) {
         errors.push("PostgreSQL password is required in production (set DATABASE_URL/POSTGRES_URL, or POSTGRES_PASSWORD)");
