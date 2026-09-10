@@ -8,12 +8,17 @@ export default {
       option.setName('person')
         .setDescription('De verkoper/medewerker die je geholpen heeft')
         .setRequired(true))
-    .addIntegerOption(option =>
+    .addStringOption(option =>
       option.setName('rating')
-        .setDescription('Aantal sterren (1 t/m 5)')
-        .setMinValue(1)
-        .setMaxValue(5)
-        .setRequired(true))
+        .setDescription('Kies het aantal sterren')
+        .setRequired(true)
+        .addChoices(
+          { name: '⭐⭐⭐⭐⭐ (5/5)', value: '⭐⭐⭐⭐⭐' },
+          { name: '⭐⭐⭐⭐ (4/5)', value: '⭐⭐⭐⭐' },
+          { name: '⭐⭐⭐ (3/5)', value: '⭐⭐⭐' },
+          { name: '⭐⭐ (2/5)', value: '⭐⭐' },
+          { name: '⭐ (1/5)', value: '⭐' }
+        ))
     .addStringOption(option =>
       option.setName('product')
         .setDescription('Het gekochte product')
@@ -27,12 +32,9 @@ export default {
     await interaction.deferReply({ ephemeral: true });
 
     const person = interaction.options.getUser('person');
-    const ratingCount = interaction.options.getInteger('rating');
+    const starEmojis = interaction.options.getString('rating');
     const product = interaction.options.getString('product');
     const review = interaction.options.getString('review');
-
-    // Zet het aantal sterren om naar emoji's (bijv. 5 -> ⭐⭐⭐⭐⭐)
-    const starEmojis = '⭐'.repeat(ratingCount);
 
     // Zoek het reviews kanaal op
     const reviewChannel = interaction.guild.channels.cache.find(
@@ -68,7 +70,7 @@ export default {
       .setFooter({ text: 'A&M Watches | Klantenservice' });
 
     try {
-      // Verwijder het vorige sticky bericht als dat er al stond (voorkomt dubbele berichten)
+      // Verwijder het vorige sticky bericht als dat er al stond
       const recentMessages = await reviewChannel.messages.fetch({ limit: 10 });
       const lastSticky = recentMessages.find(
         m => m.author.id === interaction.client.user.id && m.embeds[0]?.title === '📌 Vouch System'
@@ -77,7 +79,7 @@ export default {
         await lastSticky.delete().catch(() => {});
       }
 
-      // Stuur eerst de review en daarna direct de nieuwe sticky eronder
+      // Stuur de review en het nieuwe sticky bericht
       await reviewChannel.send({ embeds: [reviewEmbed] });
       await reviewChannel.send({ embeds: [stickyEmbed] });
 
