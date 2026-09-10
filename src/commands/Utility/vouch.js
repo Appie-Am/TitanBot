@@ -36,12 +36,10 @@ export default {
     const product = interaction.options.getString('product');
     const review = interaction.options.getString('review');
 
-    // Zoek het reviews kanaal op
     const reviewChannel = interaction.guild.channels.cache.find(
       channel => channel.name.includes('reviews') || channel.name.includes('💌')
     ) || interaction.channel;
 
-    // 1. Maak de review embed
     const reviewEmbed = new EmbedBuilder()
       .setTitle('✅ A&M Watches Vouch')
       .setColor('#57F287')
@@ -57,7 +55,6 @@ export default {
       })
       .setTimestamp();
 
-    // 2. Maak het Sticky Informatie Bericht
     const stickyEmbed = new EmbedBuilder()
       .setTitle('📌 Vouch System')
       .setColor('#2B2D31')
@@ -70,16 +67,16 @@ export default {
       .setFooter({ text: 'A&M Watches | Klantenservice' });
 
     try {
-      // Verwijder het vorige sticky bericht als dat er al stond
-      const recentMessages = await reviewChannel.messages.fetch({ limit: 10 });
-      const lastSticky = recentMessages.find(
-        m => m.author.id === interaction.client.user.id && m.embeds[0]?.title === '📌 Vouch System'
-      );
-      if (lastSticky) {
-        await lastSticky.delete().catch(() => {});
+      const recentMessages = await reviewChannel.messages.fetch({ limit: 10 }).catch(() => null);
+      if (recentMessages) {
+        const lastSticky = recentMessages.find(
+          m => m.author.id === interaction.client.user.id && m.embeds[0]?.title === '📌 Vouch System'
+        );
+        if (lastSticky) {
+          await lastSticky.delete().catch(() => {});
+        }
       }
 
-      // Stuur de review en het nieuwe sticky bericht
       await reviewChannel.send({ embeds: [reviewEmbed] });
       await reviewChannel.send({ embeds: [stickyEmbed] });
 
