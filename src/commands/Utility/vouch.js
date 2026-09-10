@@ -10,14 +10,14 @@ export default {
         .setRequired(true))
     .addStringOption(option =>
       option.setName('rating')
-        .setDescription('Kies het aantal sterren')
+        .setDescription('Aantal sterren (bijv. 5 of kies uit het menu)')
         .setRequired(true)
         .addChoices(
-          { name: '⭐⭐⭐⭐⭐ (5/5)', value: '⭐⭐⭐⭐⭐' },
-          { name: '⭐⭐⭐⭐ (4/5)', value: '⭐⭐⭐⭐' },
-          { name: '⭐⭐⭐ (3/5)', value: '⭐⭐⭐' },
-          { name: '⭐⭐ (2/5)', value: '⭐⭐' },
-          { name: '⭐ (1/5)', value: '⭐' }
+          { name: '⭐⭐⭐⭐⭐ (5/5)', value: '5' },
+          { name: '⭐⭐⭐⭐ (4/5)', value: '4' },
+          { name: '⭐⭐⭐ (3/5)', value: '3' },
+          { name: '⭐⭐ (2/5)', value: '2' },
+          { name: '⭐ (1/5)', value: '1' }
         ))
     .addStringOption(option =>
       option.setName('product')
@@ -32,9 +32,21 @@ export default {
     await interaction.deferReply({ ephemeral: true });
 
     const person = interaction.options.getUser('person');
-    const starEmojis = interaction.options.getString('rating');
+    const ratingInput = interaction.options.getString('rating');
     const product = interaction.options.getString('product');
     const review = interaction.options.getString('review');
+
+    // Zet cijfer om naar sterren, of gebruik de invoer direct als er al sterren in staan
+    let starEmojis = '';
+    const numericRating = parseInt(ratingInput, 10);
+
+    if (!isNaN(numericRating) && numericRating >= 1 && numericRating <= 5) {
+      starEmojis = '⭐'.repeat(numericRating);
+    } else if (ratingInput.includes('⭐')) {
+      starEmojis = ratingInput;
+    } else {
+      starEmojis = '⭐⭐⭐⭐⭐'; // Standaard fallback
+    }
 
     const reviewChannel = interaction.guild.channels.cache.find(
       channel => channel.name.includes('reviews') || channel.name.includes('💌')
