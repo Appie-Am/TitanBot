@@ -8,17 +8,12 @@ export default {
       option.setName('person')
         .setDescription('De verkoper/medewerker die je geholpen heeft')
         .setRequired(true))
-    .addStringOption(option =>
+    .addIntegerOption(option =>
       option.setName('rating')
-        .setDescription('Aantal sterren (bijv. 5 of kies uit het menu)')
-        .setRequired(true)
-        .addChoices(
-          { name: '⭐⭐⭐⭐⭐ (5/5)', value: '5' },
-          { name: '⭐⭐⭐⭐ (4/5)', value: '4' },
-          { name: '⭐⭐⭐ (3/5)', value: '3' },
-          { name: '⭐⭐ (2/5)', value: '2' },
-          { name: '⭐ (1/5)', value: '1' }
-        ))
+        .setDescription('Aantal sterren (1 t/m 5)')
+        .setMinValue(1)
+        .setMaxValue(5)
+        .setRequired(true))
     .addStringOption(option =>
       option.setName('product')
         .setDescription('Het gekochte product')
@@ -32,21 +27,12 @@ export default {
     await interaction.deferReply({ ephemeral: true });
 
     const person = interaction.options.getUser('person');
-    const ratingInput = interaction.options.getString('rating');
+    const ratingCount = interaction.options.getInteger('rating') || 5;
     const product = interaction.options.getString('product');
     const review = interaction.options.getString('review');
 
-    // Zet cijfer om naar sterren, of gebruik de invoer direct als er al sterren in staan
-    let starEmojis = '';
-    const numericRating = parseInt(ratingInput, 10);
-
-    if (!isNaN(numericRating) && numericRating >= 1 && numericRating <= 5) {
-      starEmojis = '⭐'.repeat(numericRating);
-    } else if (ratingInput.includes('⭐')) {
-      starEmojis = ratingInput;
-    } else {
-      starEmojis = '⭐⭐⭐⭐⭐'; // Standaard fallback
-    }
+    // Bouw de sterren string op (bijv. 5 -> ⭐⭐⭐⭐⭐)
+    const starEmojis = '⭐'.repeat(Math.max(1, Math.min(5, ratingCount)));
 
     const reviewChannel = interaction.guild.channels.cache.find(
       channel => channel.name.includes('reviews') || channel.name.includes('💌')
