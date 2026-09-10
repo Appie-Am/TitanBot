@@ -27,63 +27,44 @@ export default {
     await interaction.deferReply({ ephemeral: true });
 
     const person = interaction.options.getUser('person');
-    const ratingCount = interaction.options.getInteger('rating') || 5;
+    const rating = interaction.options.getInteger('rating');
     const product = interaction.options.getString('product');
     const review = interaction.options.getString('review');
 
-    // Bouw de sterren string op (bijv. 5 -> ⭐⭐⭐⭐⭐)
-    const starEmojis = '⭐'.repeat(Math.max(1, Math.min(5, ratingCount)));
+    // Genereer sterren en een visuele ratingbalk
+    const stars = '⭐'.repeat(rating);
+    const scoreBar = '🟩'.repeat(rating) + '⬜'.repeat(5 - rating);
+    const vouchId = Math.floor(1000 + Math.random() * 9000); // Uniek Vouch ID (#1234)
 
+    // Bepaal het review kanaal
     const reviewChannel = interaction.guild.channels.cache.find(
-      channel => channel.name.includes('reviews') || channel.name.includes('💌')
+      c => c.name.includes('reviews') || c.name.includes('💌')
     ) || interaction.channel;
 
+    // 1. Luxe Review Embed
     const reviewEmbed = new EmbedBuilder()
-      .setTitle('✅ A&M Watches Vouch')
-      .setColor('#57F287')
-      .addFields(
-        { name: '👤 Person', value: `${person}`, inline: false },
-        { name: '⭐ Rating', value: starEmojis, inline: false },
-        { name: '📦 Product', value: `\`${product}\``, inline: false },
-        { name: '💬 Review', value: `> ${review}`, inline: false }
-      )
-      .setFooter({ 
-        text: `A&M Watches | Geplaatst door ${interaction.user.username}`,
-        iconURL: interaction.user.displayAvatarURL()
+      .setAuthor({ 
+        name: `${interaction.user.username} heeft een review geplaatst!`, 
+        iconURL: interaction.user.displayAvatarURL({ dynamic: true }) 
       })
-      .setTimestamp();
-
-    const stickyEmbed = new EmbedBuilder()
-      .setTitle('📌 Vouch System')
-      .setColor('#2B2D31')
-      .setDescription(
-        'Gebruik het onderstaande commando om een review achter te laten:\n' +
-        '```/vouch person:@lid rating:1-5 product:naam review:bericht```\n' +
-        '⚠️ **Let op:** Als je geen review achterlaat heb je **geen garantie**, ' +
-        'tenzij expliciet anders vermeld.'
-      )
-      .setFooter({ text: 'A&M Watches | Klantenservice' });
-
-    try {
-      const recentMessages = await reviewChannel.messages.fetch({ limit: 10 }).catch(() => null);
-      if (recentMessages) {
-        const lastSticky = recentMessages.find(
-          m => m.author.id === interaction.client.user.id && m.embeds[0]?.title === '📌 Vouch System'
-        );
-        if (lastSticky) {
-          await lastSticky.delete().catch(() => {});
-        }
-      }
-
-      await reviewChannel.send({ embeds: [reviewEmbed] });
-      await reviewChannel.send({ embeds: [stickyEmbed] });
-
-      await interaction.editReply({ 
-        content: `✅ Je review is succesvol geplaatst in ${reviewChannel}!` 
-      });
-    } catch (error) {
-      console.error('Fout bij het plaatsen van vouch:', error);
-      await interaction.editReply({ content: '❌ Er is een fout opgetreden bij het plaatsen van de review.' });
-    }
-  },
-};
+      .setTitle(`✨ A&M Watches Vouch #${vouchId}`)
+      .setColor('#2F3136')
+      .addFields(
+        { 
+          name: '👤 Medewerker', 
+          value: `> ${person}`, 
+          inline: true 
+        },
+        { 
+          name: '📦 Product', 
+          value: `> \`${product}\``, 
+          inline: true 
+        },
+        { 
+          name: '⭐ Beoordeling', 
+          value: `> ${stars} **(${rating}/5)**\n>${scoreBar}`, 
+          inline: false 
+        },
+        { 
+          name: '💬 Ervaring', 
+          value: ````${review}
