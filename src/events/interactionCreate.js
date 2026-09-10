@@ -19,6 +19,7 @@ import { resolveSlashAccessKey } from '../utils/messageAdapter.js';
 import { isCollectorManagedComponent } from '../utils/collectorComponents.js';
 import { ResponseCoordinator } from '../utils/responseCoordinator.js';
 import { enforceDefaultCommandPermissions } from '../utils/permissionGuard.js';
+import { handleShopTicketEvents } from './shopTicketHandler.js';
 
 const COMMAND_ERROR_SUBTYPES = {
   warn: 'warn_failed',
@@ -57,6 +58,15 @@ export default {
       try {
         InteractionHelper.patchInteractionResponses(interaction);
         ResponseCoordinator.attach(interaction);
+
+        // 🛍️ Shop Ticket Handler (Aankoop systeem knoppen, menu's en sluitknop)
+        if (
+          (interaction.isButton() && (interaction.customId.startsWith('buy_ticket_') || interaction.customId === 'close_shop_ticket')) ||
+          (interaction.isStringSelectMenu() && (interaction.customId === 'select_product' || interaction.customId.startsWith('select_payment_')))
+        ) {
+          await handleShopTicketEvents(interaction);
+          return;
+        }
 
         if (interaction.isChatInputCommand()) {
           try {
